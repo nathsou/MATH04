@@ -4,4 +4,4 @@ MATH04 is a [Complex Analysis](https://www.wikiwand.com/en/Complex_analysis) mod
 
 - ### Project 1 : Plane transformations
 - ### Project 2 : Root finding methods
-- ### Project 2 : Fourier series
+- ### Project 3 : Fourier series
