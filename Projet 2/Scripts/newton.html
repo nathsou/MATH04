@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <title>Newton's method</title>
+    </head>
+    <body>
+
+        <canvas id='canvas' width="500" height="20"></canvas>
+
+        <script>
+            
+            function deriv(f, x, eps = 10 ** -4) {
+                return (f(x + eps) - f(x - eps)) / (2 * eps);
+            }
+
+            function newton(f, x0, limit = 1000, eta = 10 ** -4) {
+                
+                let x = x0, delta, i;
+
+                for (i = 0; i < limit; i++) {
+                    delta = f(x) / deriv(f, x);
+                    x -= delta;
+                    if (Math.abs(delta) < eta) break;
+                }
+
+                return {
+                    root: x,
+                    iterartions: i
+                }
+            }
+
+            function rootIdx(x, roots, eps = 10 ** -4) {
+                for (let i = 0; i < roots.length; i++) {
+                    const root = roots[i];
+                    if (Math.abs(x - root) < eps) {
+                        return i;
+                    }
+                }
+
+                roots.push(x);
+                return roots.length;
+            }  
+
+            function map(x, a, b, A, B) {
+                return (x - a) * (B - A) / (b - a) + A; 
+            }
+
+            function getColor(idx, alpha = 255) {
+                const colors = ['b71540', 'b8e994', '4a69bd', 'f6b93b', '8e44ad'];
+                const hex = colors[idx % colors.length];
+                return `rgba(${[hex.substr(0, 2), hex.substr(2, 2), hex.substr(4, 2)].map(v => parseInt(v, 16)).join(', ')}, ${alpha})`
+            }
+
+            function getRoots(f, a, b, nb_samples) {
+                let roots = [], max = -Infinity, min = Infinity;
+                for (let i = 0; i < nb_samples; i++) {
+                    const x = map(i, 0, nb_samples, a, b);
+                    const newt = newton(f, x);
+                    max = newt.root > max ? newt.root : max;
+                    min = newt.root < min ? newt.root : min;
+                    roots.push(newt);
+                }
+
+                return {
+                    max: max,
+                    min: min,
+                    roots: roots
+                };
+            }
+
+            function drawBassin(cnv, f, a, b) {
+                [a, b] = [Math.min(a, b), Math.max(a, b)];
+                const ctx = cnv.getContext('2d');
+
+                let newt_roots = getRoots(f, a, b, cnv.width);
+                console.log(newt_roots);
+                let roots = [];
+
+                for (let i = 0; i < cnv.width; i++) {
+                    const newt = newt_roots.roots[i];
+                    ctx.beginPath();
+                    const ridx = rootIdx(newt.root, roots);
+                    const alpha = map(newt.root, newt_roots.min, newt_roots.max, 1, 0.1);
+                    ctx.fillStyle = getColor(ridx, alpha);
+                    ctx.fillRect(i, 0, i + 1, cnv.height);
+                    ctx.fill();
+                    ctx.closePath();   
+                }
+
+            }
+
+            const f = x => x ** 3 - 10 * x + 2;
+            drawBassin(document.getElementById('canvas'), f, -5, 5);
+
+        </script>
+    </body>
+</html>

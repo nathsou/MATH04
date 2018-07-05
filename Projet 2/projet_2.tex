@@ -1,0 +1,415 @@
+\documentclass{article}
+
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{float}
+    \usepackage[french]{babel}
+    \usepackage[margin=.8in]{geometry}
+    \usepackage{amssymb}
+    \usepackage{amsmath}  
+    \usepackage{mathtools}
+    \usepackage{listings}
+    \usepackage{graphicx}
+    \usepackage[hidelinks]{hyperref}
+    \usepackage{calrsfs}
+    \usepackage{bookmark}
+    \usepackage{tikz,tkz-tab}
+    \DeclarePairedDelimiter\abs{\lvert}{\rvert}%
+    \DeclarePairedDelimiter\bigabs{\Big\lvert}{\Big\rvert}%
+    \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+    
+\begin{document}
+
+\title{Projet 2 - MATH04 \\ Suites numériques pour la résolution numérique d'équations}
+\author{Nathan Soufflet}
+
+\maketitle
+\pagenumbering{gobble}
+\newpage
+
+\section{La méthode par dichotomie}
+
+\subsection{Principe}
+
+Soit $f(x)$ une fonction à valeurs réelles continue sur $[a, b]$ telle que $f(a)f(b) < 0$.
+
+Ainsi, $f(a) \leq 0 \leq f(b)$ donc d'après le théorème des valeurs intermédiaires :
+
+$$\exists x_* \in [a, b] \mid f(x_*) = 0$$
+
+Soit maintenant $c = \frac{a + b}{2}$, on a deux possibilités : 
+
+\begin{equation*}
+    \left \{
+    \begin{aligned}
+      & c \geq x_* \Rightarrow f(c) \geq 0 \Rightarrow f(a)f(c) \leq 0 \Rightarrow x_* \in [a, c] \\
+      & c < x_* \Rightarrow f(c) < 0 \Rightarrow f(a)f(c) > 0 \Rightarrow x_* \in [c, b]
+    \end{aligned} \right.
+\end{equation*} \\
+
+En remarquant que $sgn(f(a)) \neq sgn(f(b)) \Rightarrow f(a)f(b) \leq 0$
+
+\subsection{Exemple}
+
+Soit $f(x) = x^{3} - 10x + 2$, il s'agit d'un polynôme, $f(x)$ est donc continue,
+son tableau de variation donne :
+
+\begin{center}
+    \begin{tikzpicture}
+        \tkzTabInit{$x$ / 1 , $f'(x)$ / 1, $f(x)$ / 1.5}{$-\infty$, $-\sqrt{\frac{10}{3}}$, $\sqrt{\frac{10}{3}}$, $+\infty$}
+        \tkzTabLine{, +, z, -, z, +, }
+        \tkzTabVar{-/ $-\infty$, +/ $x_1$, -/ $x_2$, +/ $+\infty$}
+    \end{tikzpicture}
+\end{center} 
+
+Avec $x_1 = 2 + \sqrt{\frac{4000}{27}}$ et $x_2 = 2 - \sqrt{\frac{4000}{27}}$\\
+
+
+On en déduit que $f(x)$ est monotone (continue) sur $]-\infty, x_1]$,
+$[x_1, x_2]$ et $[x_2, +\infty[$, de plus $-\infty < 0 < x_1$, $x_2 < 0 < x_1$ et $x_2 < 0 < +\infty$,
+ainsi en appliquant le théorème des valeurs intermédiaires pour ces trois intervalles, on obtient trois réels
+$t_1$, $t_2$ et $t_3$ tels que $f(t_1) = f(t_2) = f(t_3) = 0$ et $t_1 < t_2 < t_3$. $f(x)$ admet donc trois racines
+réelles distinctes.\\
+
+
+En executant 20 itérations de l'algorithme de dichotomie avec $a = -\sqrt{\frac{10}{3}}$ et
+$b = \sqrt{\frac{10}{3}}$, on obtient :
+$t_2 \approx 0.200808342479295 \pm \epsilon$ où $\epsilon = \frac{2\sqrt{\frac{10}{3}}}{2^n} =
+\frac{\sqrt{\frac{10}{3}}}{2^{19}} < 10^{5}$
+
+\subsection{Convergence}
+
+Soient les suites
+
+\begin{equation*}
+    a_{n+1}=\left \{
+    \begin{aligned}
+      &c_n, && \text{si}\ f(b_n)f(c_n) \leq 0 \\
+      &a_n, && \text{sinon}
+    \end{aligned} \right.
+\end{equation*} 
+  
+\begin{equation*}
+    b_{n+1}=\left \{
+    \begin{aligned}
+      &c_n, && \text{si}\ f(a_n)f(c_n) \leq 0 \\
+      &b_n, && \text{sinon}
+    \end{aligned} \right.
+\end{equation*} 
+
+$$c_n = \frac{a_{n} + b_{n}}{2}$$
+
+- Ainsi, pour tout entier naturel $k$, $[a_{k + 1}, b_{k + 1}] =
+[a_k, c_k]$ ou $[a_{k + 1}, b_{k + 1}] = [c_k, b_k]$, la longueur de 
+l'intervalle est donc divisée par deux à chaque itération : 
+
+$$\abs{b_{k + 1} - a_{k + 1}} = \bigabs{\frac{b_k - a_k}{2}}$$
+
+- Comme $\exists! x = x_* \in [a_k, b_k] \mid f(x) = 0$ et $[a_k, c_k] \cap [c_k, b_k] = \{c_k\}$, il y a trois
+possibilités :
+
+\begin{equation*}
+    \left \{
+    \begin{aligned}
+      & c_k > x_* \Rightarrow f(c) > 0 \Rightarrow f(a_k)f(c_k) < 0 \Rightarrow x_* \in [a_k, c_k] \\
+      & c_k < x_* \Rightarrow f(c_k) < 0 \Rightarrow f(a_k)f(c_k) > 0 \Rightarrow x_* \in [c_k, b_k] \\
+      & c_k = x_* \Rightarrow \bigl[ x_* \in [a_k, c_k] \land x_* \in [c_k, b_k] \bigr]
+    \end{aligned} \right.
+\end{equation*} 
+
+Ainsi, $\forall k \in \mathbb{N}$, $x_* \in [a_k, b_k]$. \\
+
+
+- Or $c_{k} \in [a_k, b_k]$ d'où (pour $k \geq 1$) : 
+
+$$\abs{c_k - x_*} \leq \max_{x, y \in [a_k, b_k]} \abs{x - y} = \abs{b_k - a_k} = \bigabs{\frac{b - a}{2^{k}}}$$
+
+
+La quantité $\abs{c_k - x_*}$ est donc bornée par une suite géométrique de raison $-1 < q = \frac{1}{2} < 1$
+et de terme général $\abs{b_k - a_k} = \abs{\frac{b - a}{2^k}}$
+on en déduit : $$\lim_{n \to \infty}{\abs{c_n - x_*}} \leq \lim_{n \to \infty}{\bigabs{\frac{b - a}{2^{n}}}} = 0 
+\Rightarrow \lim_{n \to \infty}{c_n} = x_*$$
+
+La suite $(c_n)$ converge donc vers $x_*$ en $+\infty$. \\
+
+- $\forall \epsilon \in \mathbb{R}^{+}_{*}$, 
+
+$$\bigabs{\frac{b - a}{2^{n}}} < \epsilon \Rightarrow \abs{c_n - x_*} < \epsilon$$
+
+d'où :
+
+$$\log_{2}(\abs{b - a}) - n < \log_{2}(\epsilon) \Rightarrow \log_{2}\Big(\frac{\abs{b - a}}{\epsilon}\Big) < n$$
+
+Il faut donc au moins $n = \ceil{\log_{2}(\frac{\abs{b - a}}{\epsilon})}$ itérations pour
+obtenir une valeur approchée de $x_*$ à plus ou moins $\epsilon$. \\
+
+- En appliquant cette formule à la recherche de la racine $t_2$ précédente avec $\epsilon = 10^{-10}$, on obtient :
+
+$$n = \Big\lceil{\log_{2}\Big({2\sqrt{\frac{10}{3}}} \cdot 10^{10}\Big)}\Big\rceil = 36$$
+
+\newpage
+
+\section{La méthode de Newton}
+
+\subsection{Principe}
+
+Soit $f(x)$ une fonction à valeurs réelles de classe $C^2$, l'algorithme de Newton peut s'exprimer par la suite $(x_n)$ :
+
+\begin{equation*}
+    \left \{
+    \begin{aligned}
+      & x_0 \ \text{donné} \\
+      & x_{n + 1} = x_n - \frac{f(x_n)}{f'(x_n)}
+    \end{aligned} \right.
+\end{equation*} 
+
+\subsection{Exemple}
+
+\subsubsection{}
+
+ - Soit $f(x) = x^3 - 10x + 2$, on a alors : 
+
+ \begin{equation*}
+    \left \{
+    \begin{aligned}
+      & x_0 \ \text{donné} \\
+      & x_{n + 1} = x_n - \frac{x^3 - 10x + 2}{3x^2 - 10} = x_n - \frac{x}{3} + \frac{\frac{20}{3}x - 2}{3x^2 - 10}
+    \end{aligned} \right.
+\end{equation*} \\
+
+
+- On observe numériquement que certaines zones dans l'intervalle $[-5, 5]$ convergent
+vers une même racine. Cependant, $f'(x) = 3x^2-10$ admet deux racines dans $\mathbb{R}$ :
+$x_{\pm} = \pm\sqrt{\frac{10}{3}}$, la méthode de newton ne converge donc pas pour ces deux valeurs. \\
+
+En associant la couleur rouge à $t_1$, bleue à $t_2$ et verte à $t_3$, on obtient l'image suivante en 
+appliquant la méthode de Newton sur l'intervalle $[-5, 5]$ :
+
+\begin{figure}[ht!]
+    \centering
+    \includegraphics{figures/newton_bassins.png}
+    \caption{Bassins d'attraction de $f(x)$ sur $[-5, 5]$}
+\end{figure}
+
+On observe ainsi que les bassins d'attraction vers une racine donnée ne sont pas connexes.
+
+\subsubsection{}
+
+- Soit $g(x) = \sqrt{\abs{x}}$, on a :
+
+\begin{equation*}
+    g(x) = 
+    \left \{
+    \begin{aligned}
+      & \sqrt{x} \ \text{si $x \geq 0$} \\
+      & \sqrt{-x} \ \text{si $x < 0$}
+    \end{aligned} \right.
+\end{equation*} 
+
+et
+
+\begin{equation*}
+    g'(x) = 
+    \left \{
+    \begin{aligned}
+      & \frac{1}{2\sqrt{x}} \ \text{si $x > 0$} \\
+      & \frac{-1}{2\sqrt{-x}} \ \text{si $x < 0$}
+    \end{aligned} \right.
+\end{equation*} 
+
+d'où :
+
+$$\forall n \in \mathbb{N}^{+}, \ x_{n + 1} = x_n - 2x_n = -x_n$$
+
+La suite $(x_n)$ dispose donc de deux valeurs d'adhérence : $\{-x_0, \ x_0\}$
+(sauf pour $x_0 = 0$ qui résulte en une division par zero lors du calcul de $x_1$) et ne converge donc pas. \\
+
+
+$g(x) = ((x \mapsto \abs{x}) \circ (x \mapsto \sqrt{x}))(x)$, or la fonction 
+valeur absolue n'est pas continue sur $\mathbb{R}$, $g(x)$ n'est par conséquent pas de classe $C^2$,
+la méthode de Newton ne peut donc pas s'appliquer.
+
+\subsubsection{}
+
+- Soit $f(z) = z^3 - 10z + 2$, les points d'affixes $-4.48 + 1.12i$ et
+$2 - 0.84i$ ont pour racines respectives $t_1$ et $t_3$.
+
+\subsubsection{}
+
+Soit $P(z) = z^7 - 2z^3 + 5$, si $z$ est racine de $P$, alors :
+
+$$z^7 - 2 z^3 + 5 = 0 \Rightarrow z^7 = 2z^3 - 5 \Rightarrow \abs{z}^7 = \abs{2z^3 - 5}$$
+
+Par inégalité triangulaire on déduit :
+
+$$\abs{z}^7 \leq 2\abs{z}^3 + 5$$ \\
+
+Etudions alors les variations de $h(r) = r^7 - 2r^3 - 5$ pour $r \in \mathbb{R}^{+}$ : \\
+
+$h'(r) = 7r^6 - 6r^2$ est positive sur $[2, \ +\infty[$
+
+Le minimum de $h(r)$ sur cet intervalle est donc atteint en $2$, or $h(2) = 107 > 0$, on en déduit :
+
+$$\forall r \in [2, \ +\infty[, \ r^7 > 2r^3 + 5$$
+
+Ce qui implique :
+
+$$\forall z \in \mathbb{C} : \abs{z} > 2 \Rightarrow \abs{z}^7 > 2 \abs{z}^3 + 5$$
+
+Donc : 
+$$\forall z \in \mathbb{C}, \ P(z) = 0 \Rightarrow \abs{z} \leq 2$$ \\
+
+En diminuant la borne inférieure de l'intervalle d'étude, on peut majorer $|z|$ par $r_* < 1.4$, 
+unique racine réelle de $h(r)$
+
+- Démonstration que $P(z)$ admet au moins une racine réelle : \\
+
+Soit $x \in \mathbb{R}$, $P$ etant de degré impair, on a :
+
+\begin{equation*}
+    \left \{
+    \begin{aligned}
+      & \lim_{x \to -\infty} P(x) = -\infty \\
+      & \lim_{x \to +\infty} P(x) = +\infty
+    \end{aligned} \right.
+\end{equation*} 
+
+Par continuité de $P(x)$ et d'après le théorème des valeurs intermédiaires :
+
+$$\exists c \in \ ]-\infty, \ +\infty[ \ = \mathbb{R} : P(c) = 0$$ 
+
+Racines de $P(z)$ (parties réelles et imaginaires arrondies à 4 décimales) :
+
+$$\{-1.3987, \ -0.6591 - 0.9201i, \ 0.1932 - 1.3414i, \ 1.1652 - 0.4022i,
+\ 1.1652 + 0.4022i, \ 0.1932 + 1.3414i, \ -0.6591 + 0.9201i\}$$
+
+\subsection{Convergence}
+
+\subsubsection{}
+
+$g = id - \frac{f}{f'}$ et $x_{n + 1} = x_n - \frac{f(x_n)}{f'(x_n)}$ d'où : 
+
+$$x_{n + 1} = g(x_n)$$
+
+\subsubsection{}
+
+On a : 
+$$g(x_*) = x_* - \frac{f(x_*)}{f'(x_*)} = x_*$$
+
+\subsubsection{}
+
+$$g' = 1 - \frac{f'^{2} - ff''}{f'^{2}} = 1 - \Big(1 - \frac{ff''}{f'^2}\Big) = \frac{ff''}{f'^2}$$
+
+Ainsi, $$g'(x_*) = \frac{f(x_*) f''(x_*)}{f'(x_*)^2} = 0$$ car $f(x_*) = 0$, $f'(x_*) \neq 0$ et $f \in C^2$
+
+\subsubsection{}
+
+Par définition de la continuité de $g'(z)$ en $x_*$, on a :
+
+$$\forall z \in \Omega, \ \forall \epsilon > 0, \ \exists \alpha > 0, \ \Big[ \abs{z - x_*} < \alpha \Rightarrow
+\abs{g'(z) - g'(x_*)} < \epsilon \Big]$$
+
+Or 
+
+\begin{equation*}
+    \left \{
+    \begin{aligned}
+      & \abs{z - x_*} < \alpha \Rightarrow z \in V\\
+      & g'(x_*) = 0
+    \end{aligned} \right.
+\end{equation*} 
+
+Donc en particulier :
+
+$$\forall \epsilon < 1, \ \Big[z \in V \Rightarrow \abs{g'(z)} < \epsilon \Big]$$
+
+\subsubsection{}
+
+D'après le théorème des valeurs intermédiaires : 
+
+$$\forall x, y \in V, \ \exists c \in [x, y] : \frac{g(x) - g(y)}{x - y} = g'(c)$$
+
+d'où, par passage au module et en utilisant l'inégalité de la question précédente :
+
+$$\forall x, y \in V, \ \frac{\abs{g(x) - g(y)}}{\abs{x -y}} < \epsilon \Rightarrow \abs{g(x) - g(y)} < \epsilon \abs{x - y}$$
+
+\subsubsection{}
+
+Soit $V$ le cercle fermé de centre $x_*$ et de rayon $\alpha > 0$.
+
+D'après la condition de Lipschitz :
+
+$$\forall z \in V, \ \abs{g(z) - g(x_*)} < \epsilon \abs{z - x_*}$$
+
+car $x_* \in V$, or :
+
+\begin{equation*}
+    \left \{
+    \begin{aligned}
+      & z \in V \Rightarrow \abs{z - x_*} \leq \alpha \\
+      & \epsilon < 1 \\
+      & g(x_*) = x_*
+    \end{aligned} \right.
+\end{equation*} 
+
+On en déduit :
+
+$$\forall z \in V, \ \abs{g(z) - x_*} < \alpha \Rightarrow g(z) \in V$$
+
+\subsubsection{}
+
+Notons $g^n$ la composée nième de g par elle même :
+$\forall n \in \mathbb{N}^*, \ g^n= \underbrace{g \circ \ldots \circ g}_{n\ \text{fois}}$ \\
+
+D'après l'algorithme de Newton, $x_{n + 1} = g(x_n)$ avec $x_0$ donné, on a donc : 
+
+$$\forall n \in \mathbb{N}, \ x_n = g^n(x_0)$$ 
+
+or d'après la question précédente : $\forall z \in V, \ g(z) \in V$, ainsi :
+
+$$\forall x_0 \in V, \ \forall n \in \mathbb{N}, \ x_n \in V$$
+
+
+\subsubsection{}
+
+Soit $x_0 \in V$ et la proposition $P(n) : \abs{x_n - x_*} \leq \epsilon^n \abs{x_0 - x_*}$,
+montrons que $\forall n \in \mathbb{N}^*, \ P(n)$ \\
+
+
+\textbf{Initialisation.} (n = 1) \\
+
+D'après la condition de Lipschitz, on a $\abs{g(x_0) - g(x_*)} = \abs{x_1 - x_*} < \epsilon \abs{x_0 - x_*}$ \\
+or la proposition au rang $n = 1$ s'écrit: $\abs{x_1 - x_*} \leq \epsilon \abs{x_0 - x_*}$. \\
+
+La proposition est donc vraie au rang 1. \\
+
+\textbf{Hérédité.} \\ 
+
+Montrons que si $\abs{x_n - x_*} \leq \epsilon^n \abs{x_0 - x_*}$, alors 
+$\abs{x_{n + 1} - x_*} \leq \epsilon^{n + 1} \abs{x_0 - x_*}$ : \\
+
+En utilisant la condition de Lipschitz : $\abs{g(x_n) - g(x_*)} = \abs{x_{n + 1} - x_*} \leq \epsilon \abs{x_n - x_*}$ \\
+
+Or d'après l'hypothèse de récurrence : $\abs{x_n - x_*} \leq \epsilon^n \abs{x_0 - x_*}$ \\
+
+Par substitution du second membre, on obtient : $\abs{x_{n + 1} - x_*} \leq \epsilon^{n + 1} \abs{x_0 - x_*}$ \\
+
+$P(n)$ est donc héréditaire, c'est à dire $P(n) \Rightarrow P(n + 1)$ \\
+
+\textbf{Conclusion.} \\
+
+D'après l'axiome de récurrence :
+
+$$\Big[P(1) \land \big[P(n) \Rightarrow P(n + 1)\big]\Big] \Rightarrow
+\big[\forall n \in \mathbb{N}^*, \ P(n) \big]$$
+
+\subsubsection{}
+
+La démonstration précédente montre que la suite $\abs{x_n - x_*}$ est bornée par la suite géométrique
+$v_n = \epsilon^n \abs{x_0 - x_*}$ de raison $\abs{\epsilon} < 1$ pour $x_0 \in V$, on a donc : 
+
+$$\lim_{n \to \infty} \abs{x_n - x_*} \leq \lim_{n \to \infty} \epsilon^n \abs{x_0 - x_*} = 0 \Rightarrow \lim_{n \to \infty} x_n = x_*$$ \\
+
+La suite $(x_n)$ converge donc vers $x_*$ en $+\infty$ si $x_0 \in V$.
+
+\end{document}
